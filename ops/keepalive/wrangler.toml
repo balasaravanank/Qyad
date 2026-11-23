@@ -1,0 +1,8 @@
+name = "qyad-keepalive"
+main = "worker.js"
+compatibility_date = "2026-11-23"
+workers_dev = false
+[vars]
+HEALTH_URL = "https://api.YOUR-DOMAIN/api/v1/health"
+[triggers]
+crons = ["*/15 * * * *"]

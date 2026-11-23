@@ -1,0 +1,5 @@
+name = "qyad"
+pages_build_output_dir = "./public"
+compatibility_date = "2026-11-23"
+# Set APP_ORIGIN and BACKEND_ORIGIN in Pages production environment variables.
+# No private keys go in this file or in client/public.

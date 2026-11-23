@@ -1,0 +1,25 @@
+.env
+.env.*
+!.env.example
+*.db
+*.db-wal
+*.db-shm
+.venv/
+__pycache__/
+.pytest_cache/
+node_modules/
+.wrangler/
+backups/
+*.log
+# Build output and user uploads
+dist/
+build/
+uploads/
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db

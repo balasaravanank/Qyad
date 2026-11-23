@@ -1,0 +1,38 @@
+name: qyad
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    env_file:
+      - path: ./server/.env
+        format: raw
+    environment:
+      APP_ENV: production
+      AUTH_MODE: clerk
+      DATABASE_URL: sqlite:////data/workspace.db
+      BACKUP_DIR: /data/backups
+    ports:
+      - "8000:8000"
+    volumes:
+      - qyad_data:/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  qyad_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/qyad/backend

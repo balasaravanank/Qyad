@@ -1,0 +1,16 @@
+.git
+**/.env
+**/.env.*
+**/*.db
+**/*.db-*
+**/*.sqlite*
+**/__pycache__
+**/.pytest_cache
+**/.venv
+**/node_modules
+**/.wrangler
+**/backups
+**/uploads
+**/*.log
+**/*.pyc
+**/tests

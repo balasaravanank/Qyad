@@ -1,0 +1,147 @@
+/* ============ Qyad v7 design system - warm light, Claude/Notion inspired ============ */
+:root {
+  --bg: #F7F5F1;
+  --surface: #ffffff;
+  --surface-2: #F5F2EC;
+  --surface-3: #EDEAE2;
+  --hover: rgba(41, 37, 36, .045);
+  --border: rgba(68, 64, 60, .11);
+  --border-soft: rgba(68, 64, 60, .07);
+  --border-strong: rgba(68, 64, 60, .18);
+  --text-1: #1C1917;
+  --text-2: #44403C;
+  --text-3: #78716C;
+  --text-4: #A8A29E;
+  --text-5: #D6D3D1;
+  --accent: #D97757;
+  --accent-2: #C25E3F;
+  --accent-text: #C25E3F;
+  --accent-soft: rgba(217, 119, 87, .10);
+  --shadow-card: 0 1px 2px rgba(60,45,35,.05), 0 2px 10px -2px rgba(60,45,35,.05);
+  --shadow-pop: 0 16px 40px -12px rgba(60,45,35,.20), 0 4px 14px rgba(60,45,35,.07);
+  --glass: rgba(250, 249, 246, .82);
+  --ring-focus: rgba(217, 119, 87, .30);
+  color-scheme: light;
+}
+
+html { -webkit-tap-highlight-color: transparent; }
+body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(900px 500px at 85% -10%, rgba(217,119,87,.06), transparent 60%),
+    radial-gradient(700px 420px at -10% 20%, rgba(233,165,135,.05), transparent 60%);
+  background-attachment: fixed;
+}
+::selection { background: rgba(217,119,87,.25); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.input:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #D6D3D1; border-radius: 8px; border: 3px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: #A8A29E; border: 3px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- refined components ---------- */
+.card {
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow .18s ease, transform .18s ease, background-color .2s ease, border-color .2s ease;
+}
+.btn { border-radius: 10px; letter-spacing: .005em; transition: background-color .16s ease, box-shadow .16s ease, transform .08s ease, color .16s ease, border-color .16s ease; }
+.btn:active { transform: scale(.965); }
+.btn-primary {
+  background-image: linear-gradient(180deg, #DE8266 0%, #D97757 100%);
+  box-shadow: 0 1px 2px rgba(60,45,35,.16), 0 4px 14px -3px rgba(217,119,87,.45), inset 0 1px 0 rgba(255,255,255,.16);
+  text-shadow: 0 1px 1px rgba(60,45,35,.14);
+}
+.btn-primary:hover { background-image: linear-gradient(180deg, #E28B70 0%, #D97757 100%); box-shadow: 0 1px 2px rgba(60,45,35,.18), 0 6px 18px -3px rgba(217,119,87,.5), inset 0 1px 0 rgba(255,255,255,.18); }
+.btn-primary:disabled { opacity: .6; }
+.btn-ghost:hover { box-shadow: var(--shadow-card); }
+.input { border-radius: 10px; transition: box-shadow .16s ease, background-color .2s ease; }
+.input:focus { box-shadow: 0 0 0 3px var(--ring-focus); }
+.chip { letter-spacing: .015em; border-radius: 999px; }
+.label { letter-spacing: .015em; }
+.navitem { border-radius: 10px; transition: background-color .15s ease, color .15s ease; }
+.navitem.active { box-shadow: inset 0 0 0 1px var(--accent-soft), 0 0 0 1px rgba(217,119,87,.14); font-weight: 600; }
+.tabbtn { border-radius: 9px; }
+.bg-brand-600 { background-image: linear-gradient(135deg, #E08466 0%, #C25E3F 100%); }
+
+/* table polish */
+#opp-results thead th { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; }
+#opp-results thead th button { font-weight: 600; letter-spacing: .07em; text-transform: uppercase; }
+#opp-results tbody tr { transition: background-color .14s ease; }
+
+/* frosted bars */
+.glass-side { background: var(--glass) !important; -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); }
+.glass-bar { background: var(--glass) !important; -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); }
+
+/* hero panel - light warm gradient with drifting blobs */
+.hero-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #FFF9F4 0%, #FDEEE3 55%, #FBE3D3 100%);
+  box-shadow: inset 0 0 0 1px rgba(217,119,87,.16), 0 12px 32px -18px rgba(194,94,63,.35);
+}
+.hero-panel > *:not(.hero-fx) { position: relative; z-index: 1; }
+.hero-fx { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.hero-fx .blob { position: absolute; border-radius: 9999px; filter: blur(64px); }
+.hero-fx .b1 { width: 380px; height: 380px; top: -180px; right: -80px; background: #F2C9B5; opacity: .7; animation: drift1 14s ease-in-out infinite alternate; }
+.hero-fx .b2 { width: 300px; height: 300px; bottom: -170px; left: 22%; background: #F9E5DA; opacity: .8; animation: drift2 18s ease-in-out infinite alternate; }
+.hero-fx .b3 { width: 240px; height: 240px; top: -90px; left: -70px; background: #E9A587; opacity: .35; animation: drift1 16s ease-in-out infinite alternate-reverse; }
+@keyframes drift1 { from { transform: translate3d(0,0,0) scale(1); } to { transform: translate3d(36px,22px,0) scale(1.08); } }
+@keyframes drift2 { from { transform: translate3d(0,0,0) scale(1); } to { transform: translate3d(-30px,-18px,0) scale(1.1); } }
+.hero-sub { color: #57534E; }
+.hero-note { color: #A8A29E; }
+
+/* login art panel - warm light */
+.login-art {
+  background:
+    radial-gradient(900px 600px at 110% -10%, rgba(217,119,87,.35), transparent 60%),
+    radial-gradient(700px 520px at -20% 110%, rgba(233,165,135,.4), transparent 55%),
+    linear-gradient(160deg, #FBEDE3 0%, #F7DDCC 55%, #F3CFBB 100%) !important;
+}
+.login-art .blob { filter: blur(72px); opacity: .55; animation: drift1 16s ease-in-out infinite alternate; }
+
+/* shimmer for loading states */
+.shimmer { position: relative; overflow: hidden; background: var(--surface-3); border-radius: 8px; }
+.shimmer::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent);
+  animation: shimmer 1.4s infinite; }
+@keyframes shimmer { to { transform: translateX(100%); } }
+
+/* animations */
+.modal-overlay { animation: fadeIn .16s ease-out; }
+.modal-card { animation: popIn .22s cubic-bezier(.2,.9,.3,1.12); border-radius: 20px; box-shadow: var(--shadow-pop); }
+@media(max-width:639px){ .modal-card { border-radius: 20px 20px 0 0; } }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes popIn { from { opacity: 0; transform: translateY(12px) scale(.96) } to { opacity: 1; transform: none } }
+.toast-in { animation: toastIn .26s cubic-bezier(.2,.9,.3,1.15); box-shadow: var(--shadow-pop); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(14px) scale(.97) } to { opacity: 1; transform: none } }
+.drag-over { box-shadow: 0 -2px 0 0 var(--accent); }
+.dragging { opacity: .45; }
+.view-in { animation: viewIn .24s ease-out; }
+@keyframes viewIn { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+
+/* staggered entrance for lists/grids: add class "stagger" to the container */
+.stagger > * { animation: viewIn .32s cubic-bezier(.2,.7,.3,1) both; }
+.stagger > *:nth-child(1) { animation-delay: .02s; }
+.stagger > *:nth-child(2) { animation-delay: .05s; }
+.stagger > *:nth-child(3) { animation-delay: .08s; }
+.stagger > *:nth-child(4) { animation-delay: .11s; }
+.stagger > *:nth-child(5) { animation-delay: .14s; }
+.stagger > *:nth-child(6) { animation-delay: .17s; }
+.stagger > *:nth-child(7) { animation-delay: .20s; }
+.stagger > *:nth-child(8) { animation-delay: .23s; }
+.stagger > *:nth-child(n+9) { animation-delay: .26s; }
+
+/* gentle card lift */
+.lift { transition: box-shadow .18s ease, transform .18s ease; }
+.lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-pop); }
+
+@media(max-width:767px){ .tabbtn { padding-left:10px; padding-right:10px; font-size:12px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-fx .blob, .login-art .blob, .shimmer::after { animation: none !important; }
+  .view-in, .modal-overlay, .modal-card, .toast-in, .stagger > * { animation-duration: .01s !important; animation-delay: 0s !important; }
+}

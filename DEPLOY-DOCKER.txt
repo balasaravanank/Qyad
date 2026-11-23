@@ -1,0 +1,173 @@
+QYAD v9.2 - DOCKER BACKEND ON INSTABOX
+
+Replace MACHINE_NAME, YOUR_GIT_URL, YOUR_FRONTEND_HOST and the Clerk values.
+Keep passwords, SSH tokens and Clerk secrets out of chat and Git.
+Frontend remains on Cloudflare Pages. Run these backend commands over SSH.
+No deployment or Docker build/run has been tested on your real machine.
+
+1. CONNECT (from your computer, with InstaBox CLI already signed in)
+
+instabox ssh MACHINE_NAME
+
+Or use the SSH line from the machine's Connect tab. Treat that line as a secret.
+
+2. CHECK DOCKER (inside the SSH shell)
+
+docker --version
+sudo docker info
+sudo docker compose version
+
+If those work and Compose is 2.30.0 or newer (including v5), skip installation.
+The raw env-file format in this repo requires Compose 2.30.0 or newer.
+If Docker cannot start due to host permissions, stop and ask InstaBox support.
+
+Most InstaBox templates already include Docker + Compose. Check first.
+If missing, these commands support Debian or Ubuntu only:
+
+cat /etc/os-release
+. /etc/os-release
+case "$ID" in debian|ubuntu) ;; *) echo "Use Docker's guide for this distro"; exit 1 ;; esac
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl git nano
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL "https://download.docker.com/linux/$ID/gpg" -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+printf 'deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/%s %s stable\n' "$(dpkg --print-architecture)" "$ID" "${UBUNTU_CODENAME:-$VERSION_CODENAME}" | sudo tee /etc/apt/sources.list.d/docker.list
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl enable --now docker
+sudo docker compose version
+
+Do not remove an existing conflicting Docker install blindly.
+Use https://docs.docker.com/engine/install/ for other distributions.
+
+3. CLONE YOUR REPO (after pushing the extracted source yourself)
+
+git clone YOUR_GIT_URL qyad
+cd qyad
+
+4. GET THE INSTABOX HTTPS URL (inside the SSH shell)
+
+instabox-port publish 8000 --name Qyad
+
+Copy the exact printed HTTPS URL. It will not serve the app until step 6.
+Publishing is public. Clerk still protects private API data; the health route
+is public. Do NOT choose a private port: its token conflicts with the Clerk
+bearer-token route used by the frontend gateway.
+
+If instabox-port is missing, run this on YOUR COMPUTER, then retry in SSH:
+instabox port setup MACHINE_NAME
+Alternatively use the machine dashboard's Ports tab to publish port 8000.
+
+5. CREATE SERVER ENV (inside SSH, in the qyad repo root)
+
+umask 077
+cp -n server/.env.example server/.env
+chmod 600 server/.env
+nano server/.env
+
+Set these entries in the editor. Replace the angle-bracket values, no brackets:
+
+APP_ENV=production
+AUTH_MODE=clerk
+PUBLIC_URL=https://YOUR_FRONTEND_HOST
+ALLOWED_HOSTS=127.0.0.1,localhost,<hostname-from-instabox-printed-url>
+CLERK_PUBLISHABLE_KEY=<production-publishable-key>
+CLERK_SECRET_KEY=<production-secret-key>
+CLERK_ISSUER_URL=<production-Clerk-issuer-URL>
+CLERK_AUTHORIZED_PARTIES=https://YOUR_FRONTEND_HOST
+
+PUBLIC_URL is your FRONTEND origin, not the backend URL. No trailing slash. In this raw env file, do not wrap values in quotes.
+ALLOWED_HOSTS contains hostnames only, not https:// or paths.
+Copy Clerk settings from your production Clerk instance, not guessed values.
+See docs/clerk-setup.md. Compose forces production Clerk mode and overrides
+DATABASE_URL to sqlite:////data/workspace.db. It also stores backups in /data.
+Do not commit server/.env or paste it here.
+
+6. BUILD AND RUN
+
+sudo install -d -m 0700 -o 10001 -g 10001 /data/qyad/backend
+
+sudo docker compose config --quiet
+sudo docker compose up -d --build
+sudo docker compose ps
+curl --fail http://127.0.0.1:8000/api/v1/health
+sudo docker compose logs --tail=80 backend
+
+Expect {"ok":true}. Then open the printed InstaBox HTTPS URL with
+/api/v1/health appended. Use the real printed URL, not a made-up hostname.
+The named volume binds /data/qyad/backend on the InstaBox persistent disk
+to /data inside the container. Compose starts a fresh DB there. Do not import old databases
+by copying only a live .db file: WAL data could be missed. For migration,
+first create a checked SQLite online backup and stop writes; ask for migration
+steps before replacing a populated volume. Production Clerk account links
+must be preserved or deliberately linked; email alone does not merge accounts.
+
+7. CONNECT THE CLOUDFLARE PAGES FRONTEND
+
+In Pages settings, set the gateway variables, then redeploy the frontend:
+APP_ORIGIN=https://YOUR_FRONTEND_HOST
+BACKEND_ORIGIN=<the-exact-InstaBox-HTTPS-origin-without-trailing-slash>
+
+Use the provided client/public directory and its _worker.js gateway.
+Browser -> your frontend /api/v1 -> InstaBox HTTPS proxy -> port 8000 -> Docker.
+No Caddy is needed for the provider-generated HTTPS URL. Docker listens on
+0.0.0.0:8000 on the machine so InstaBox's proxy can reach it.
+
+Your own api.<domain> is optional and NOT configured by this package.
+The reviewed InstaBox docs explain generated HTTPS URLs, but do not confirm
+custom-domain attachment. A DNS CNAME by itself is not enough to guarantee
+TLS or host routing. Use the generated HTTPS origin now. For a custom backend
+domain, ask InstaBox about its supported mapping, or use a host with public
+80/443 and a properly configured HTTPS reverse proxy such as Caddy. Do not
+point an A record at an SSH gateway or assume InstaBox exposes ports 80/443.
+
+8. UPDATE (from the repo root over SSH)
+
+sudo docker compose exec -T backend python -m scripts.backup
+git pull --ff-only
+sudo docker compose up -d --build
+sudo docker compose ps
+sudo docker compose logs --tail=80 backend
+
+9. BACKUP AND COPY OUT
+
+sudo docker compose exec -T backend python -m scripts.backup
+mkdir -p backups
+chmod 700 backups
+sudo docker compose cp backend:/data/backups/. ./backups/
+sudo chown -R "$(id -u):$(id -g)" backups
+chmod 700 backups
+chmod 600 backups/*.db
+
+Backups are SQLite online backups with integrity checks; newest 7 kept inside
+the volume. Keep an encrypted off-machine copy, not just this machine's disk.
+Local copied backups are gitignored and need your own retention policy.
+
+10. RESTART / SLEEP
+
+sudo docker compose restart backend
+
+restart: unless-stopped restarts the container when Docker restarts, unless you
+manually stopped it. Docker must itself start on boot. A failing healthcheck
+marks unhealthy; it does not automatically restart a hung app.
+Do not use 'docker compose down -v' or delete /data/qyad/backend.
+Rebuilds and normal 'docker compose down' preserve the DB directory.
+The bind-backed volume metadata can be recreated, but deleting its host files
+destroys your data. Never store the only backup alongside the live DB.
+Deleting the InstaBox machine may still delete its local Docker data.
+
+InstaBox says an HTTPS request wakes a machine auto-paused after 30 idle minutes.
+Manually paused or stopped machines must be resumed/started. Try normal wake
+before adding the optional ops/keepalive Worker. Internal Docker health checks
+do not count as external requests. An external ping is not an uptime guarantee;
+check provider policy before trying to prevent idle pause.
+
+Verified public documentation, not a live machine test:
+https://instabox.sh/docs/access/ssh
+https://instabox.sh/docs/access/ports
+https://docs.docker.com/engine/install/ubuntu/
+https://docs.docker.com/reference/compose-file/container-spec/
+https://docs.docker.com/engine/install/debian/
+https://instabox.sh/docs/account/limits
+https://instabox.sh/docs/machines/linux
